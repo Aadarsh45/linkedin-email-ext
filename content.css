@@ -1,0 +1,199 @@
+/* content.css */
+
+#reachout-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 2147483646;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  backdrop-filter: blur(3px);
+  animation: ro-fadein 0.2s ease;
+}
+
+@keyframes ro-fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+#reachout-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 620px;
+  max-width: 95vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+  animation: ro-slidein 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes ro-slidein {
+  from { transform: translateY(24px) scale(0.96); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+#reachout-header {
+  background: linear-gradient(135deg, #0f62fe 0%, #6929c4 100%);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+#reachout-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#reachout-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+#reachout-subtitle {
+  color: rgba(255,255,255,0.75);
+  font-size: 12px;
+  margin: 2px 0 0;
+}
+
+#reachout-close {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+#reachout-close:hover { background: rgba(255,255,255,0.3); }
+
+#reachout-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Loading state */
+#reachout-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+  gap: 14px;
+  color: #555;
+}
+
+.ro-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #0f62fe;
+  border-radius: 50%;
+  animation: ro-spin 0.8s linear infinite;
+}
+@keyframes ro-spin { to { transform: rotate(360deg); } }
+
+/* Email form */
+.ro-field {
+  margin-bottom: 14px;
+}
+
+.ro-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.ro-input, .ro-textarea {
+  width: 100%;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #222;
+  background: #fafafa;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+.ro-input:focus, .ro-textarea:focus {
+  border-color: #0f62fe;
+  outline: none;
+  background: #fff;
+}
+.ro-textarea { min-height: 200px; line-height: 1.6; }
+
+.ro-tag {
+  display: inline-block;
+  background: #e8f0fe;
+  color: #0f62fe;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+#reachout-footer {
+  padding: 14px 24px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background: #fafafa;
+}
+
+.ro-btn {
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ro-btn-primary {
+  background: linear-gradient(135deg, #0f62fe, #6929c4);
+  color: #fff;
+}
+.ro-btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.ro-btn-secondary {
+  background: #fff;
+  color: #333;
+  border: 1.5px solid #ddd;
+}
+.ro-btn-secondary:hover { background: #f5f5f5; }
+
+.ro-error {
+  background: #fff0f0;
+  border: 1.5px solid #ffc0c0;
+  color: #c00;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 14px;
+  text-align: center;
+  margin: 20px 0;
+}

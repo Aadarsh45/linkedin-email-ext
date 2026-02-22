@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>ReachOut AI Settings</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 340px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fff;
+      color: #222;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0f62fe 0%, #6929c4 100%);
+      padding: 18px 20px;
+      color: #fff;
+    }
+    .header h1 { font-size: 17px; font-weight: 700; }
+    .header p { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 3px; }
+
+    .body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin-bottom: 5px;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 8px 11px;
+      font-size: 13px;
+      font-family: inherit;
+      background: #fafafa;
+      color: #222;
+      transition: border-color 0.15s;
+    }
+    .field input:focus, .field textarea:focus {
+      border-color: #0f62fe;
+      outline: none;
+      background: #fff;
+    }
+    .field textarea { resize: vertical; min-height: 60px; }
+
+    .hint {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+    .hint a { color: #0f62fe; text-decoration: none; }
+
+    .save-btn {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, #0f62fe, #6929c4);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .save-btn:hover { opacity: 0.88; }
+
+    .saved-msg {
+      text-align: center;
+      color: #0a0;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+
+    .how-to {
+      background: #f0f5ff;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: #555;
+      line-height: 1.6;
+    }
+    .how-to strong { color: #0f62fe; }
+    .divider { border: none; border-top: 1px solid #f0f0f0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>✉️ ReachOut AI</h1>
+    <p>Cold Email Generator from Selection</p>
+  </div>
+
+  <div class="body">
+    <div class="how-to">
+      <strong>How to use:</strong><br>
+      1. Select any job post text on LinkedIn<br>
+      2. Right-click → <em>"✉️ ReachOut: Generate Cold Email"</em><br>
+      3. Review & click <em>Open in Gmail</em> 🚀
+    </div>
+
+    <hr class="divider"/>
+
+    <div class="field">
+      <label>Groq API Key (Free)</label>
+      <input type="password" id="apiKey" placeholder="Paste your Gemini API key here" />
+      <div class="hint">Get yours FREE at <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> — no credit card, works in India ✅</div>
+    </div>
+
+    <div class="field">
+      <label>Your Full Name</label>
+      <input type="text" id="userName" placeholder="Aadarsh Chaurasia" />
+    </div>
+
+    <div class="field">
+      <label>Your Target Role / Current Role</label>
+      <input type="text" id="userRole" placeholder="Mobile Application Developer (Android)" />
+    </div>
+
+    <div class="field">
+      <label>Key Skills (comma separated)</label>
+      <textarea id="userSkills" placeholder="Kotlin, Android SDK, Jetpack Compose, MVVM, Retrofit, Firebase, Hilt, Coroutines, Room, AR development, C++, Python, SQL"></textarea>
+    </div>
+
+    <button class="save-btn" id="saveBtn">Save Settings</button>
+    <div class="saved-msg" id="savedMsg">✅ Saved successfully!</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
