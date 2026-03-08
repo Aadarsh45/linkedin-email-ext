@@ -1,18 +1,21 @@
-// background.js - Uses Groq API (Free, fast, no region restrictions)
+// background.js v2 - ReachOut AI
+// Architecture: background handles all AI calls; content.js handles UI only
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "reachout-email",
-    title: "✉️ ReachOut: Generate Cold Email",
-    contexts: ["selection"]
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: "reachout-email",
+      title: "✉️ ReachOut: Generate Cold Email",
+      contexts: ["selection"]
+    });
   });
 });
 
-// Safe send — injects content script first if tab can't receive messages
+// ─── Safe message sender ──────────────────────────────────────────────────────
 async function safeSend(tabId, msg) {
   try {
     await chrome.tabs.sendMessage(tabId, msg);
-  } catch (e) {
+  } catch {
     try {
       await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
       await chrome.scripting.insertCSS({ target: { tabId }, files: ["content.css"] });
@@ -23,47 +26,49 @@ async function safeSend(tabId, msg) {
   }
 }
 
+// ─── Context menu handler ─────────────────────────────────────────────────────
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== "reachout-email") return;
 
-  const selectedText = info.selectionText;
-  if (!selectedText || selectedText.trim().length < 10) {
+  const selectedText = info.selectionText?.trim();
+  if (!selectedText || selectedText.length < 10) {
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: (msg) => {
         const t = document.createElement("div");
         t.textContent = msg;
-        t.style.cssText = "position:fixed;top:20px;right:20px;z-index:999999;background:#333;color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;font-family:sans-serif;";
+        t.style.cssText = "position:fixed;top:20px;right:20px;z-index:999999;background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-family:sans-serif;box-shadow:0 4px 20px rgba(0,0,0,0.3);";
         document.body.appendChild(t);
         setTimeout(() => t.remove(), 3000);
       },
-      args: ["⚠️ Please select more text (e.g. a full job post)"]
+      args: ["⚠️ Select more text — e.g. the full job post"]
     });
     return;
   }
 
   await safeSend(tab.id, { type: "SHOW_LOADING" });
 
-  const { apiKey, userName, userRole, userSkills } = await chrome.storage.sync.get([
-    "apiKey", "userName", "userRole", "userSkills"
+  // Load all stored data
+  const stored = await chrome.storage.local.get([
+    "apiKey", "userName", "userEmail", "userPhone",
+    "userRole", "userSkills", "resumeData"
   ]);
 
-  if (!apiKey) {
+  if (!stored.apiKey) {
     await safeSend(tab.id, {
       type: "SHOW_ERROR",
       message: "No API key found.",
-      detail: "Open the extension popup and paste your Groq API key, then Save."
+      detail: "Click the extension icon → add your Groq API key → Save."
     });
     return;
   }
 
   let result;
   try {
-    result = await withTimeout(generateEmail(apiKey, selectedText, {
-      userName: userName || "Your Name",
-      userRole: userRole || "Software Engineer",
-      userSkills: userSkills || "relevant skills"
-    }), 15000);
+    result = await withTimeout(
+      generateEmail(stored.apiKey, selectedText, stored),
+      20000
+    );
   } catch (err) {
     await safeSend(tab.id, {
       type: "SHOW_ERROR",
@@ -76,51 +81,59 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   await safeSend(tab.id, { type: "SHOW_EMAIL", email: result });
 });
 
+// ─── Timeout helper ───────────────────────────────────────────────────────────
 function withTimeout(promise, ms) {
-  const timer = new Promise((_, reject) =>
-    setTimeout(() => reject(Object.assign(
-      new Error("Request timed out after 15s"),
-      { detail: "Groq took too long. Try again." }
-    )), ms)
-  );
-  return Promise.race([promise, timer]);
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(Object.assign(
+        new Error("Request timed out after 20s"),
+        { detail: "Try again — Groq was slow." }
+      )), ms)
+    )
+  ]);
 }
 
+// ─── Email generator ──────────────────────────────────────────────────────────
 async function generateEmail(apiKey, jobText, userInfo) {
-  const prompt = `You are an expert at writing cold outreach emails for job applications.
+  const resume = userInfo.resumeData;
 
-Analyze this job post / LinkedIn content and extract:
-- Job title
-- Company name (if visible)
-- Key required skills
+  // Build rich candidate context from parsed resume + manual fields
+  const candidateBlock = buildCandidateBlock(userInfo, resume);
 
-Then write a concise, personalized cold outreach email from the candidate to the recruiter or hiring manager.
+  const prompt = `You are an expert recruiter and career coach specializing in cold outreach emails.
 
-Job Post Content:
+Analyze the job post below and write a highly personalized cold outreach email from the candidate to the recruiter or hiring manager.
+
+Rules:
+- Keep it concise (under 200 words body)
+- Be specific — reference the job title and company by name
+- Match 2-3 of the candidate's skills/projects to the job requirements
+- Sound human, not templated
+- If resume has projects, mention the most relevant one briefly
+- End with the candidate's contact info (email + phone if available)
+- Do NOT use generic phrases like "I am writing to express my interest"
+
+Job Post:
 """
 ${jobText}
 """
 
-Candidate Info:
-- Name: ${userInfo.userName}
-- Current/Target Role: ${userInfo.userRole}
-- Key Skills: ${userInfo.userSkills}
+${candidateBlock}
 
-Return a JSON object ONLY (no markdown, no explanation, no code fences) with this exact structure:
+Return ONLY a raw JSON object (no markdown, no code fences, no explanation):
 {
-  "subject": "email subject line",
-  "to": "recruiter email if found, else empty string",
-  "body": "full email body with \\n for newlines",
-  "extractedJob": "job title extracted",
-  "extractedCompany": "company name extracted"
+  "subject": "concise compelling subject line",
+  "to": "recruiter/hiring email if visible in job post, else empty string",
+  "body": "full email body — use actual \\n for line breaks, sign off with name + email + phone",
+  "extractedJob": "job title from post",
+  "extractedCompany": "company name from post",
+  "matchedSkills": ["skill1", "skill2", "skill3"]
 }`;
-
-  // Groq API — free tier, works in India, very fast (LPU inference)
-  const url = "https://api.groq.com/openai/v1/chat/completions";
 
   let response;
   try {
-    response = await fetch(url, {
+    response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -129,14 +142,12 @@ Return a JSON object ONLY (no markdown, no explanation, no code fences) with thi
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1024
+        temperature: 0.65,
+        max_tokens: 1200
       })
     });
-  } catch (networkErr) {
-    throw Object.assign(new Error("Network error — could not reach Groq"), {
-      detail: networkErr.message
-    });
+  } catch (e) {
+    throw Object.assign(new Error("Network error — can't reach Groq"), { detail: e.message });
   }
 
   const data = await response.json();
@@ -144,8 +155,9 @@ Return a JSON object ONLY (no markdown, no explanation, no code fences) with thi
   if (!response.ok) {
     const msg = data?.error?.message || "Groq API error";
     const code = data?.error?.code || response.status;
-    const type = data?.error?.type || `HTTP ${response.status}`;
-    throw Object.assign(new Error(`[${code}] ${msg}`), { detail: `Type: ${type}` });
+    throw Object.assign(new Error(`[${code}] ${msg}`), {
+      detail: `Type: ${data?.error?.type || response.status}`
+    });
   }
 
   const raw = data.choices?.[0]?.message?.content?.trim();
@@ -157,14 +169,130 @@ Return a JSON object ONLY (no markdown, no explanation, no code fences) with thi
 
   const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
 
-  let parsed;
   try {
-    parsed = JSON.parse(cleaned);
-  } catch (e) {
+    return JSON.parse(cleaned);
+  } catch {
     throw Object.assign(new Error("Could not parse response as JSON"), {
-      detail: "Raw output: " + cleaned.slice(0, 200)
+      detail: "Raw: " + cleaned.slice(0, 300)
+    });
+  }
+}
+
+// ─── Build candidate context block from resume + manual fields ─────────────────
+function buildCandidateBlock(userInfo, resume) {
+  const lines = ["CANDIDATE PROFILE:"];
+
+  const name  = resume?.name  || userInfo.userName  || "Candidate";
+  const email = resume?.email || userInfo.userEmail || "";
+  const phone = resume?.phone || userInfo.userPhone || "";
+  const role  = resume?.currentRole || userInfo.userRole || "Software Engineer";
+  const skills = resume?.skills?.join(", ") || userInfo.userSkills || "various skills";
+
+  lines.push(`Name: ${name}`);
+  if (email) lines.push(`Email: ${email}`);
+  if (phone) lines.push(`Phone: ${phone}`);
+  lines.push(`Role: ${role}`);
+  lines.push(`Skills: ${skills}`);
+
+  if (resume?.experience?.length) {
+    lines.push("\nExperience:");
+    resume.experience.forEach(exp => {
+      lines.push(`  • ${exp.title} at ${exp.company} (${exp.duration || ""})`);
+      if (exp.highlights?.length) {
+        exp.highlights.slice(0, 2).forEach(h => lines.push(`    - ${h}`));
+      }
     });
   }
 
-  return parsed;
+  if (resume?.projects?.length) {
+    lines.push("\nKey Projects:");
+    resume.projects.slice(0, 3).forEach(p => {
+      lines.push(`  • ${p.name}${p.tech ? ` (${p.tech})` : ""}: ${p.description || ""}`);
+    });
+  }
+
+  if (resume?.education?.length) {
+    const edu = resume.education[0];
+    lines.push(`\nEducation: ${edu.degree} — ${edu.institution} (${edu.year || ""})`);
+  }
+
+  if (resume?.achievements?.length) {
+    lines.push("\nNotable Achievements:");
+    resume.achievements.slice(0, 3).forEach(a => lines.push(`  • ${a}`));
+  }
+
+  return lines.join("\n");
+}
+
+// ─── Resume parser (called from popup via message) ────────────────────────────
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "PARSE_RESUME") {
+    parseResume(msg.apiKey, msg.text)
+      .then(data => sendResponse({ ok: true, data }))
+      .catch(err => sendResponse({ ok: false, error: err.message }));
+    return true; // keep channel open for async
+  }
+});
+
+async function parseResume(apiKey, resumeText) {
+  const prompt = `Parse this resume and extract structured data. Return ONLY raw JSON (no markdown, no code fences):
+
+{
+  "name": "full name",
+  "email": "email address or empty string",
+  "phone": "phone number or empty string",
+  "currentRole": "most recent job title",
+  "skills": ["skill1", "skill2", ...],
+  "experience": [
+    {
+      "title": "job title",
+      "company": "company name",
+      "duration": "date range e.g. May 2024 - Present",
+      "highlights": ["achievement 1", "achievement 2"]
+    }
+  ],
+  "projects": [
+    {
+      "name": "project name",
+      "tech": "technologies used",
+      "description": "one line description"
+    }
+  ],
+  "education": [
+    {
+      "degree": "degree name",
+      "institution": "college/university name",
+      "year": "graduation year or range"
+    }
+  ],
+  "achievements": ["achievement 1", "achievement 2"]
+}
+
+Resume text:
+"""
+${resumeText}
+"""`;
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.1,
+      max_tokens: 2000
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.error?.message || "Parse failed");
+
+  const raw = data.choices?.[0]?.message?.content?.trim();
+  if (!raw) throw new Error("Empty parse response");
+
+  const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+  return JSON.parse(cleaned);
 }

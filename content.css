@@ -1,199 +1,201 @@
-/* content.css */
+/* content.css - ReachOut AI v2 */
 
 #reachout-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.65);
   z-index: 2147483646;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  backdrop-filter: blur(3px);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  backdrop-filter: blur(4px);
   animation: ro-fadein 0.2s ease;
 }
 
-@keyframes ro-fadein {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+@keyframes ro-fadein { from { opacity: 0; } to { opacity: 1; } }
 
 #reachout-modal {
-  background: #fff;
-  border-radius: 16px;
-  width: 620px;
+  background: #13131e;
+  border: 1px solid #2a2a3d;
+  border-radius: 18px;
+  width: 640px;
   max-width: 95vw;
-  max-height: 88vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(124,106,247,0.15);
   overflow: hidden;
-  animation: ro-slidein 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  animation: ro-slidein 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 @keyframes ro-slidein {
-  from { transform: translateY(24px) scale(0.96); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+  from { transform: translateY(28px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
 }
 
+/* Header */
 #reachout-header {
-  background: linear-gradient(135deg, #0f62fe 0%, #6929c4 100%);
-  padding: 18px 24px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 16px 22px;
   display: flex;
   align-items: center;
-  gap: 12px;
   justify-content: space-between;
+  border-bottom: 1px solid #2a2a3d;
 }
 
-#reachout-header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+#reachout-header-left { display: flex; align-items: center; gap: 12px; }
+
+.ro-header-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, #7c6af7, #4fd1c7);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
 }
 
-#reachout-title {
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0;
-}
+#reachout-title  { color: #fff; font-size: 15px; font-weight: 700; margin: 0; }
+#reachout-subtitle { color: #6b6b85; font-size: 11px; margin: 2px 0 0; }
 
-#reachout-subtitle {
-  color: rgba(255,255,255,0.75);
-  font-size: 12px;
-  margin: 2px 0 0;
+/* Matched skills badge row */
+#ro-skills-row {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  padding: 10px 22px;
+  border-bottom: 1px solid #1e1e2e;
+  background: #0f0f1a;
 }
+.ro-skill-tag {
+  background: rgba(79, 209, 199, 0.12);
+  color: #4fd1c7;
+  border: 1px solid rgba(79,209,199,0.25);
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.ro-skill-label { font-size: 11px; color: #6b6b85; align-self: center; }
 
 #reachout-close {
-  background: rgba(255,255,255,0.15);
-  border: none;
-  color: #fff;
-  width: 30px;
-  height: 30px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid #2a2a3d;
+  color: #aaa;
+  width: 30px; height: 30px;
   border-radius: 50%;
   cursor: pointer;
   font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
 }
-#reachout-close:hover { background: rgba(255,255,255,0.3); }
+#reachout-close:hover { background: rgba(248,113,113,0.15); color: #f87171; border-color: #f87171; }
 
+/* Body */
 #reachout-body {
-  padding: 20px 24px;
+  padding: 18px 22px;
   overflow-y: auto;
   flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a3d transparent;
 }
 
-/* Loading state */
-#reachout-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 0;
-  gap: 14px;
-  color: #555;
-}
-
-.ro-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #e0e0e0;
-  border-top-color: #0f62fe;
-  border-radius: 50%;
-  animation: ro-spin 0.8s linear infinite;
-}
-@keyframes ro-spin { to { transform: rotate(360deg); } }
-
-/* Email form */
-.ro-field {
-  margin-bottom: 14px;
-}
-
-.ro-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #888;
-  margin-bottom: 5px;
-}
-
-.ro-input, .ro-textarea {
-  width: 100%;
-  border: 1.5px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 14px;
-  font-family: inherit;
-  color: #222;
-  background: #fafafa;
-  box-sizing: border-box;
-  transition: border-color 0.15s;
-  resize: vertical;
-}
-.ro-input:focus, .ro-textarea:focus {
-  border-color: #0f62fe;
-  outline: none;
-  background: #fff;
-}
-.ro-textarea { min-height: 200px; line-height: 1.6; }
-
-.ro-tag {
-  display: inline-block;
-  background: #e8f0fe;
-  color: #0f62fe;
-  padding: 3px 10px;
+/* Job info tag */
+.ro-job-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(124,106,247,0.12);
+  border: 1px solid rgba(124,106,247,0.25);
+  color: #a89cf7;
+  padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
   margin-bottom: 14px;
 }
 
+/* Fields */
+.ro-field { margin-bottom: 13px; }
+.ro-label {
+  display: block;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: #6b6b85; margin-bottom: 5px;
+}
+.ro-input, .ro-textarea {
+  width: 100%;
+  background: #1e1e2e;
+  border: 1.5px solid #2a2a3d;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #e8e8f0;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+.ro-input:focus, .ro-textarea:focus {
+  border-color: #7c6af7;
+  outline: none;
+}
+.ro-textarea { min-height: 210px; line-height: 1.65; }
+
+/* Loading */
+#reachout-loading {
+  display: flex; flex-direction: column;
+  align-items: center; padding: 50px 0; gap: 14px;
+}
+
+.ro-spinner {
+  width: 44px; height: 44px;
+  border: 3px solid #2a2a3d;
+  border-top-color: #7c6af7;
+  border-radius: 50%;
+  animation: ro-spin 0.75s linear infinite;
+}
+@keyframes ro-spin { to { transform: rotate(360deg); } }
+
+.ro-loading-text { color: #e8e8f0; font-size: 14px; font-weight: 600; }
+.ro-loading-sub  { color: #6b6b85; font-size: 12px; }
+
+/* Error */
+.ro-error {
+  background: rgba(248,113,113,0.08);
+  border: 1.5px solid rgba(248,113,113,0.3);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.ro-error-title { color: #f87171; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.ro-error-detail {
+  font-size: 11px; color: #f87171; opacity: 0.7;
+  background: rgba(0,0,0,0.2); border-radius: 6px;
+  padding: 7px 10px; margin-top: 8px;
+  font-family: monospace; word-break: break-all;
+}
+
+/* Footer */
 #reachout-footer {
-  padding: 14px 24px;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  background: #fafafa;
+  padding: 13px 22px;
+  border-top: 1px solid #1e1e2e;
+  display: flex; gap: 9px; justify-content: flex-end;
+  background: #0f0f1a;
 }
 
 .ro-btn {
-  padding: 9px 20px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 9px; border: none;
+  font-size: 13px; font-weight: 700;
   cursor: pointer;
+  font-family: inherit;
   transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  display: flex; align-items: center; gap: 6px;
 }
-
 .ro-btn-primary {
-  background: linear-gradient(135deg, #0f62fe, #6929c4);
+  background: linear-gradient(135deg, #7c6af7, #9b5de5);
   color: #fff;
 }
 .ro-btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
-
 .ro-btn-secondary {
-  background: #fff;
-  color: #333;
-  border: 1.5px solid #ddd;
+  background: #1e1e2e;
+  color: #aaa;
+  border: 1.5px solid #2a2a3d;
 }
-.ro-btn-secondary:hover { background: #f5f5f5; }
-
-.ro-error {
-  background: #fff0f0;
-  border: 1.5px solid #ffc0c0;
-  color: #c00;
-  border-radius: 8px;
-  padding: 14px 16px;
-  font-size: 14px;
-  text-align: center;
-  margin: 20px 0;
-}
+.ro-btn-secondary:hover { background: #2a2a3d; color: #e8e8f0; }

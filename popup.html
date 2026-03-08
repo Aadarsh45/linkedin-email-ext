@@ -2,133 +2,349 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>ReachOut AI Settings</title>
+  <title>ReachOut AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d14;
+      --surface: #16161f;
+      --surface2: #1e1e2e;
+      --border: #2a2a3d;
+      --accent: #7c6af7;
+      --accent2: #4fd1c7;
+      --text: #e8e8f0;
+      --muted: #6b6b85;
+      --success: #4ade80;
+      --error: #f87171;
+      --radius: 10px;
+    }
+
     body {
-      width: 340px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #fff;
-      color: #222;
+      width: 380px;
+      max-height: 580px;
+      overflow-y: auto;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
     }
 
+    /* Header */
     .header {
-      background: linear-gradient(135deg, #0f62fe 0%, #6929c4 100%);
-      padding: 18px 20px;
-      color: #fff;
+      padding: 16px 20px 14px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .header h1 { font-size: 17px; font-weight: 700; }
-    .header p { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 3px; }
+    .header-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .header h1 { font-size: 15px; font-weight: 700; color: #fff; }
+    .header p  { font-size: 11px; color: var(--muted); margin-top: 1px; }
 
-    .body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
-
-    .field label {
-      display: block;
-      font-size: 11px;
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1;
+      padding: 10px 0;
+      font-size: 12px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #888;
-      margin-bottom: 5px;
+      text-align: center;
+      cursor: pointer;
+      color: var(--muted);
+      border: none;
+      background: transparent;
+      transition: all 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .tab.active {
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+    }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* Panels */
+    .panel { display: none; padding: 16px 18px; }
+    .panel.active { display: block; }
+
+    /* Field */
+    .field { margin-bottom: 13px; }
+    .field label {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--muted); margin-bottom: 5px;
     }
     .field input, .field textarea {
       width: 100%;
-      border: 1.5px solid #e0e0e0;
-      border-radius: 8px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
       padding: 8px 11px;
       font-size: 13px;
-      font-family: inherit;
-      background: #fafafa;
-      color: #222;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
       transition: border-color 0.15s;
     }
     .field input:focus, .field textarea:focus {
-      border-color: #0f62fe;
+      border-color: var(--accent);
       outline: none;
-      background: #fff;
     }
-    .field textarea { resize: vertical; min-height: 60px; }
+    .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
+    .field textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
 
-    .hint {
-      font-size: 11px;
-      color: #aaa;
-      margin-top: 4px;
+    .hint { font-size: 10px; color: var(--muted); margin-top: 4px; }
+    .hint a { color: var(--accent); text-decoration: none; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Resume upload zone */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 22px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--surface2);
+      position: relative;
     }
-    .hint a { color: #0f62fe; text-decoration: none; }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(124, 106, 247, 0.08);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 28px; margin-bottom: 6px; }
+    .upload-zone h3 { font-size: 13px; font-weight: 600; color: var(--text); }
+    .upload-zone p  { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
+    /* Parse status */
+    #parse-status {
+      margin-top: 10px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      padding: 10px 12px;
+      display: none;
+    }
+    #parse-status.loading { background: rgba(124,106,247,0.12); color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    #parse-status.success { background: rgba(74,222,128,0.1); color: var(--success); display: block; }
+    #parse-status.error   { background: rgba(248,113,113,0.1); color: var(--error); display: block; }
+
+    .spinner-sm {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(124,106,247,0.3);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Parsed resume card */
+    #resume-card {
+      margin-top: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px 14px;
+      display: none;
+    }
+    #resume-card.visible { display: block; }
+    .resume-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .resume-card-header h4 { font-size: 13px; font-weight: 700; color: var(--text); }
+    .clear-btn {
+      font-size: 10px; color: var(--error); background: none; border: none;
+      cursor: pointer; font-family: inherit; font-weight: 600;
+    }
+    .clear-btn:hover { opacity: 0.8; }
+
+    .rc-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: flex-start; }
+    .rc-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); min-width: 60px; padding-top: 1px; }
+    .rc-val { font-size: 12px; color: var(--text); flex: 1; line-height: 1.4; }
+    .rc-tag {
+      display: inline-block;
+      background: rgba(124,106,247,0.15);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      margin: 2px 2px 2px 0;
+    }
+    .rc-section { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+    .rc-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; letter-spacing: 0.5px; }
+    .exp-item { margin-bottom: 6px; }
+    .exp-title { font-size: 12px; font-weight: 600; color: var(--text); }
+    .exp-sub   { font-size: 11px; color: var(--muted); }
+
+    /* Save button */
     .save-btn {
       width: 100%;
       padding: 10px;
-      background: linear-gradient(135deg, #0f62fe, #6929c4);
+      background: linear-gradient(135deg, var(--accent), #9b5de5);
       color: #fff;
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
-      transition: opacity 0.15s;
+      font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.15s, transform 0.1s;
+      margin-top: 4px;
+      letter-spacing: 0.3px;
     }
-    .save-btn:hover { opacity: 0.88; }
+    .save-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .save-btn:active { transform: translateY(0); }
 
     .saved-msg {
       text-align: center;
-      color: #0a0;
-      font-size: 13px;
+      color: var(--success);
+      font-size: 12px;
       font-weight: 600;
+      margin-top: 8px;
       display: none;
     }
 
+    /* How to use */
     .how-to {
-      background: #f0f5ff;
-      border-radius: 8px;
-      padding: 12px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px 14px;
       font-size: 12px;
-      color: #555;
-      line-height: 1.6;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 14px;
     }
-    .how-to strong { color: #0f62fe; }
-    .divider { border: none; border-top: 1px solid #f0f0f0; }
+    .step {
+      display: flex; gap: 8px; margin-bottom: 5px;
+    }
+    .step-num {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-text { color: var(--text); font-size: 12px; }
+    .step-text em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+    /* API key with mono font */
+    #apiKey { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.5px; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>✉️ ReachOut AI</h1>
-    <p>Cold Email Generator from Selection</p>
+    <div class="header-icon">✉️</div>
+    <div>
+      <h1>ReachOut AI</h1>
+      <p>Cold Email · Powered by Groq · v2.0</p>
+    </div>
   </div>
 
-  <div class="body">
-    <div class="how-to">
-      <strong>How to use:</strong><br>
-      1. Select any job post text on LinkedIn<br>
-      2. Right-click → <em>"✉️ ReachOut: Generate Cold Email"</em><br>
-      3. Review & click <em>Open in Gmail</em> 🚀
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="setup">⚙️ Setup</button>
+    <button class="tab" data-tab="resume">📄 Resume</button>
+    <button class="tab" data-tab="howto">📖 How to</button>
+  </div>
+
+  <!-- SETUP TAB -->
+  <div class="panel active" id="tab-setup">
+    <div class="field">
+      <label>🔑 Groq API Key</label>
+      <input type="password" id="apiKey" placeholder="gsk_..." />
+      <div class="hint">Free at <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> — no credit card, works in India ✅</div>
     </div>
 
-    <hr class="divider"/>
+    <div class="row">
+      <div class="field">
+        <label>👤 Full Name</label>
+        <input type="text" id="userName" placeholder="Aadarsh Chaurasia" />
+      </div>
+      <div class="field">
+        <label>💼 Target Role</label>
+        <input type="text" id="userRole" placeholder="Android Developer" />
+      </div>
+    </div>
 
-    <div class="field">
-      <label>Groq API Key (Free)</label>
-      <input type="password" id="apiKey" placeholder="Paste your Gemini API key here" />
-      <div class="hint">Get yours FREE at <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> — no credit card, works in India ✅</div>
+    <div class="row">
+      <div class="field">
+        <label>📧 Your Email</label>
+        <input type="email" id="userEmail" placeholder="you@gmail.com" />
+      </div>
+      <div class="field">
+        <label>📱 Phone</label>
+        <input type="tel" id="userPhone" placeholder="+91 9140563616" />
+      </div>
     </div>
 
     <div class="field">
-      <label>Your Full Name</label>
-      <input type="text" id="userName" placeholder="Aadarsh Chaurasia" />
-    </div>
-
-    <div class="field">
-      <label>Your Target Role / Current Role</label>
-      <input type="text" id="userRole" placeholder="Mobile Application Developer (Android)" />
-    </div>
-
-    <div class="field">
-      <label>Key Skills (comma separated)</label>
-      <textarea id="userSkills" placeholder="Kotlin, Android SDK, Jetpack Compose, MVVM, Retrofit, Firebase, Hilt, Coroutines, Room, AR development, C++, Python, SQL"></textarea>
+      <label>🛠 Key Skills</label>
+      <textarea id="userSkills" placeholder="Kotlin, Jetpack Compose, Firebase, MVVM..."></textarea>
     </div>
 
     <button class="save-btn" id="saveBtn">Save Settings</button>
-    <div class="saved-msg" id="savedMsg">✅ Saved successfully!</div>
+    <div class="saved-msg" id="savedMsg">✅ Saved!</div>
+  </div>
+
+  <!-- RESUME TAB -->
+  <div class="panel" id="tab-resume">
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="resumeFile" accept=".txt,.pdf" />
+      <div class="upload-icon">📄</div>
+      <h3>Drop your resume here</h3>
+      <p>Supports .txt and .pdf (text-based)</p>
+    </div>
+
+    <div id="parse-status"></div>
+
+    <div id="resume-card">
+      <div class="resume-card-header">
+        <h4>✅ Resume Parsed</h4>
+        <button class="clear-btn" id="clearResume">✕ Clear</button>
+      </div>
+      <div id="resume-card-body"></div>
+    </div>
+  </div>
+
+  <!-- HOW TO TAB -->
+  <div class="panel" id="tab-howto">
+    <div class="how-to">
+      <div class="step"><span class="step-num">1</span><span class="step-text">Add your <em>Groq API key</em> in Setup tab</span></div>
+      <div class="step"><span class="step-num">2</span><span class="step-text">Upload your <em>resume</em> in the Resume tab — AI will parse it</span></div>
+      <div class="step"><span class="step-num">3</span><span class="step-text">Go to <em>LinkedIn</em> (or any job post)</span></div>
+      <div class="step"><span class="step-num">4</span><span class="step-text"><em>Select</em> the job description text</span></div>
+      <div class="step"><span class="step-num">5</span><span class="step-text">Right-click → <em>✉️ ReachOut: Generate Cold Email</em></span></div>
+      <div class="step"><span class="step-num">6</span><span class="step-text">Review email → click <em>Open in Gmail</em> 🚀</span></div>
+    </div>
+    <div class="hint" style="text-align:center; margin-top:6px;">
+      Resume data + contact info auto-added to every email
+    </div>
   </div>
 
   <script src="popup.js"></script>

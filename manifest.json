@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ReachOut AI - Email from Selection",
-  "version": "1.0",
-  "description": "Select any job post or content on screen → generate a cold outreach email → open in Gmail",
+  "name": "ReachOut AI",
+  "version": "2.0",
+  "description": "Select any job post → AI parses your resume → generates personalized cold email → opens in Gmail",
   "permissions": [
     "contextMenus",
     "activeTab",
